@@ -26,7 +26,7 @@ def recommend(movie):
         # fetch poster from API
         recommended_movies_posters.append(fetch_poster(movie_id))
 
-    return recommended_movies 
+    return recommended_movies,recommended_movies_posters
 
 movies_dict =pickle.load(open('movies_dict.pkl','rb'))
 movies = pd.DataFrame(movies_dict)
@@ -36,7 +36,7 @@ selected_movie_name =st.selectbox('Select a movie',movies['title'].values)
 if st.button('Recommend'):
     names,posters =recommend(selected_movie_name)
     
-    col1,col2,col3,col4,col5 =st.beta_columns(5)
+    col1,col2,col3,col4,col5 =st.columns(5)
     with col1:
         st.text(names[0])
         st.image(posters[0])
