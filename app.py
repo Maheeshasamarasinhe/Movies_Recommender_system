@@ -99,17 +99,46 @@ movies, similarity = load_data()
 API_KEY = os.getenv('TMDB_API_KEY')
 
 @st.cache_data
-def fetch_poster(movie_id):
+def fetch_movie_details(movie_id):
     try:
-        url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={API_KEY}&language=en-US"
+        url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={API_KEY}&language=en-US&append_to_response=credits"
         response = requests.get(url)
         data = response.json()
+        
+        # Get poster
         poster_path = data.get('poster_path')
-        if poster_path:
-            return f"https://image.tmdb.org/t/p/w500/{poster_path}"
-        return "https://via.placeholder.com/500x750?text=No+Poster"
+        poster = f"https://image.tmdb.org/t/p/w500/{poster_path}" if poster_path else "https://via.placeholder.com/500x750?text=No+Poster"
+        
+        # Get overview
+        overview = data.get('overview', 'No overview available.')
+        
+        # Get genres
+        genres = [genre['name'] for genre in data.get('genres', [])]
+        
+        # Get cast (top 5)
+        credits = data.get('credits', {})
+        cast_list = credits.get('cast', [])
+        cast = [actor['name'] for actor in cast_list[:5]]
+        
+        # Get director
+        crew_list = credits.get('crew', [])
+        director = next((person['name'] for person in crew_list if person['job'] == 'Director'), 'Unknown')
+        
+        return {
+            'poster': poster,
+            'overview': overview,
+            'genres': genres,
+            'cast': cast,
+            'director': director
+        }
     except:
-        return "https://via.placeholder.com/500x750?text=No+Poster"
+        return {
+            'poster': "https://via.placeholder.com/500x750?text=No+Poster",
+            'overview': 'No overview available.',
+            'genres': [],
+            'cast': [],
+            'director': 'Unknown'
+        }
 
 def recommend(movie):
     try:
@@ -123,7 +152,8 @@ def recommend(movie):
         for i in movies_list:
             movie_id = movies.iloc[i[0]].movie_id
             recommended_movies.append(movies.iloc[i[0]].title)
-            recommended_posters.append(fetch_poster(movie_id))
+            movie_details = fetch_movie_details(movie_id)
+            recommended_posters.append(movie_details['poster'])
         
         return recommended_movies, recommended_posters
     except:
@@ -192,8 +222,8 @@ if st.session_state.page == 'home':
             if idx < len(top_movies):
                 movie_data = top_movies.iloc[idx]
                 with cols[j]:
-                    poster_url = fetch_poster(movie_data.movie_id)
-                    st.image(poster_url, use_container_width=True)
+                    movie_details = fetch_movie_details(movie_data.movie_id)
+                    st.image(movie_details['poster'], use_container_width=True)
                     st.markdown(f"<p style='text-align: center; font-weight: 600;'>{movie_data.title}</p>", unsafe_allow_html=True)
                     if st.button("View details", key=f"btn_{idx}", use_container_width=True):
                         st.session_state.selected_movie = movie_data.title
@@ -259,8 +289,8 @@ elif st.session_state.page == 'search':
             if idx < len(page_movies):
                 movie_data = page_movies.iloc[idx]
                 with cols[j]:
-                    poster_url = fetch_poster(movie_data.movie_id)
-                    st.image(poster_url, use_container_width=True)
+                    movie_details = fetch_movie_details(movie_data.movie_id)
+                    st.image(movie_details['poster'], use_container_width=True)
                     st.markdown(f"<p style='text-align: center; font-weight: 600;'>{movie_data.title}</p>", unsafe_allow_html=True)
                     if st.button("Select", key=f"browse_{start_idx + idx}", use_container_width=True):
                         st.session_state.selected_movie = movie_data.title
@@ -278,15 +308,28 @@ elif st.session_state.page == 'recommendations':
         st.markdown(f"### 🎬 Movies Similar to '{st.session_state.selected_movie}'")
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # Show selected movie
+        # Show selected movie with details
         st.markdown("#### Selected Movie:")
         try:
             selected_movie_data = movies[movies['title'] == st.session_state.selected_movie].iloc[0]
-            col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 2])
+            movie_details = fetch_movie_details(selected_movie_data.movie_id)
+            
+            col1, col2 = st.columns([1, 2])
             with col1:
-                poster_url = fetch_poster(selected_movie_data.movie_id)
-                st.image(poster_url, use_container_width=True)
-                st.markdown(f"<p style='text-align: center; font-weight: 700; font-size: 1.1rem;'>{st.session_state.selected_movie}</p>", unsafe_allow_html=True)
+                st.image(movie_details['poster'], use_container_width=True)
+            with col2:
+                st.markdown(f"<h2 style='color: #667eea;'>{st.session_state.selected_movie}</h2>", unsafe_allow_html=True)
+                
+                st.markdown(f"**Director:** {movie_details['director']}")
+                
+                if movie_details['genres']:
+                    st.markdown(f"**Genres:** {', '.join(movie_details['genres'])}")
+                
+                if movie_details['cast']:
+                    st.markdown(f"**Cast:** {', '.join(movie_details['cast'])}")
+                
+                st.markdown("**Overview:**")
+                st.write(movie_details['overview'])
         except:
             pass
         
@@ -297,14 +340,18 @@ elif st.session_state.page == 'recommendations':
         names, posters = recommend(st.session_state.selected_movie)
         
         if names:
-            cols = st.columns(5)
-            for idx, col in enumerate(cols):
-                with col:
-                    st.image(posters[idx], use_container_width=True)
-                    st.markdown(f"<p style='text-align: center; font-weight: 600; font-size: 1rem;'>{names[idx]}</p>", unsafe_allow_html=True)
-                    if st.button("View Details", key=f"rec_{idx}", use_container_width=True):
-                        st.session_state.selected_movie = names[idx]
-                        st.rerun()
+            # Display in 2 rows of 5 movies each
+            for row in range(2):
+                cols = st.columns(5)
+                for idx, col in enumerate(cols):
+                    movie_idx = row * 5 + idx
+                    if movie_idx < len(names):
+                        with col:
+                            st.image(posters[movie_idx], use_container_width=True)
+                            st.markdown(f"<p style='text-align: center; font-weight: 600; font-size: 1rem;'>{names[movie_idx]}</p>", unsafe_allow_html=True)
+                            if st.button("View Details", key=f"rec_{movie_idx}", use_container_width=True):
+                                st.session_state.selected_movie = names[movie_idx]
+                                st.rerun()
         else:
             st.error("Could not find recommendations for this movie.")
     else:
