@@ -99,6 +99,6 @@ This project is licensed under the MIT License.
 
 ## Contact
 
-Your Name - [@yourtwitter](https://twitter.com/yourtwitter)
+Linkedin: https://www.linkedin.com/in/maheesha-mihiran-344770354
 
-Project Link: [https://github.com/yourusername/movie-recommender-system](https://github.com/yourusername/movie-recommender-system)
+Project Link: [https://github.com/Maheeshasamarasinhe/Movies_Recommender_system](https://github.com/Maheeshasamarasinhe/Movies-recommender-system)
