@@ -4,7 +4,7 @@ A beautiful and intelligent movie recommendation system built with Streamlit and
 
 ## Features
 
-- 🎯 **Smart Recommendations** - Get 5 similar movie suggestions based on content-based filtering
+- 🎯 **Smart Recommendations** - Get 10 similar movie suggestions based on content-based filtering
 - 🔍 **Advanced Search** - Search through thousands of movies
 - 🎨 **Beautiful UI** - Modern, responsive design with smooth animations
 - 📱 **Multi-Page Layout** - Organized navigation with Home, Search, and About pages
@@ -12,8 +12,10 @@ A beautiful and intelligent movie recommendation system built with Streamlit and
 
 ## Screenshots
 
-![Selected Movie]()
-![Recommendations]()
+![Home Page](screenshots/Home.png)
+![Search Page](screenshots/search.png)
+![Selected Movie](screenshots/selected_movie.png)
+![Recommendations](screenshots/recommendations.png)
 
 ## Installation
 
@@ -59,7 +61,7 @@ Movie_Recommender_system/
 
 1. **Data Processing** - Movie data is preprocessed using NLP techniques (stemming, vectorization)
 2. **Similarity Calculation** - Cosine similarity is computed between movie feature vectors
-3. **Recommendation** - When you select a movie, the system finds the 5 most similar movies
+3. **Recommendation** - When you select a movie, the system finds the 10 most similar movies
 4. **Display** - Results are shown with movie posters fetched from TMDB API
 
 ## Technologies Used
