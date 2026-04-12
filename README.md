@@ -14,8 +14,8 @@ A beautiful and intelligent movie recommendation system built with Streamlit and
 
 ![Home Page](screenshots/Home.png)
 ![Search Page](screenshots/search.png)
-![Selected Movie](screenshots/selected_movie.png)
-![Recommendations](screenshots/recommendations.png)
+![Selected Movie](screenshots/selected.png)
+![Recommendations](screenshots/recommendation.png)
 
 ## Installation
 
